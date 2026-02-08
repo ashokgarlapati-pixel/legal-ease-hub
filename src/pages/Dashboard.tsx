@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { Send, RotateCcw, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const WEBHOOK_URL = "https://YOUR-N8N-WEBHOOK-URL";
+const WEBHOOK_URL = "https://vagdeviii.app.n8n.cloud/webhook-test/legal-document-upload";
 
 type Phase = "form" | "processing" | "success" | "error";
 type WebhookStatus = "connected" | "sending" | "processing" | "completed" | "failed";
