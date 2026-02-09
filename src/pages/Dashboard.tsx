@@ -11,8 +11,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Send, RotateCcw, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-const WEBHOOK_URL = "https://vagdeviii.app.n8n.cloud/webhook-test/lexscope-analyze";
+import { supabase } from "@/integrations/supabase/client";
 
 type Phase = "form" | "processing" | "success";
 type WebhookStatus = "connected" | "sending" | "processing" | "completed" | "failed";
@@ -72,12 +71,11 @@ const Dashboard = () => {
 
       setWebhookStatus("processing");
 
-      const response = await fetch(WEBHOOK_URL, {
-        method: "POST",
+      const response = await supabase.functions.invoke("webhook-proxy", {
         body: formData,
       });
 
-      if (!response.ok) throw new Error(`Webhook error: ${response.status}`);
+      if (response.error) throw new Error(response.error.message);
 
       setWebhookStatus("completed");
       setTimeout(() => {
