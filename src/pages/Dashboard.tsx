@@ -5,13 +5,17 @@ import StepIndicator from "@/components/StepIndicator";
 import FileUpload from "@/components/FileUpload";
 import JurisdictionSelect from "@/components/JurisdictionSelect";
 import SuccessScreen from "@/components/SuccessScreen";
+import ProcessingScreen from "@/components/ProcessingScreen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Send, RotateCcw, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-type Phase = "form" | "success";
+const WEBHOOK_URL = "https://vagdeviii.app.n8n.cloud/webhook-test/lexscope-analyze";
+
+type Phase = "form" | "processing" | "success";
+type WebhookStatus = "connected" | "sending" | "processing" | "completed" | "failed";
 
 const STEPS = ["Upload", "Details", "Submit"];
 
@@ -22,6 +26,7 @@ const Dashboard = () => {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [phase, setPhase] = useState<Phase>("form");
+  const [webhookStatus, setWebhookStatus] = useState<WebhookStatus>("connected");
 
   const currentStep = !file ? 0 : !jurisdiction || !email ? 1 : 2;
 
@@ -50,12 +55,41 @@ const Dashboard = () => {
     setEmail("");
     setEmailError("");
     setPhase("form");
+    setWebhookStatus("connected");
   }, []);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isFormValid || !file) return;
-    setPhase("success");
-    toast.success("Document submitted successfully!");
+
+    setPhase("processing");
+    setWebhookStatus("sending");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("jurisdiction", jurisdiction === "custom" ? customJurisdiction : jurisdiction);
+      formData.append("email", email);
+
+      setWebhookStatus("processing");
+
+      const response = await fetch(WEBHOOK_URL, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error(`Webhook error: ${response.status}`);
+
+      setWebhookStatus("completed");
+      setTimeout(() => {
+        setPhase("success");
+        toast.success("Document submitted successfully!");
+      }, 800);
+    } catch (error) {
+      console.error("Webhook error:", error);
+      setWebhookStatus("failed");
+      toast.error("Failed to submit document. Please try again.");
+      setTimeout(() => setPhase("form"), 2000);
+    }
   };
 
   const jurisdictionLabel =
@@ -134,6 +168,17 @@ const Dashboard = () => {
           )}
 
           <AnimatePresence mode="wait">
+            {phase === "processing" && (
+              <motion.div
+                key="processing"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="rounded-2xl border border-border bg-card p-6 shadow-elevated md:p-8"
+              >
+                <ProcessingScreen webhookStatus={webhookStatus} />
+              </motion.div>
+            )}
             {phase === "success" && (
               <motion.div
                 key="success"
