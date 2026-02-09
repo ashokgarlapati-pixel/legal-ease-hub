@@ -4,7 +4,6 @@ import Footer from "@/components/Footer";
 import StepIndicator from "@/components/StepIndicator";
 import FileUpload from "@/components/FileUpload";
 import JurisdictionSelect from "@/components/JurisdictionSelect";
-import ProcessingScreen from "@/components/ProcessingScreen";
 import SuccessScreen from "@/components/SuccessScreen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,10 +11,7 @@ import { toast } from "sonner";
 import { Send, RotateCcw, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const WEBHOOK_URL = "https://vagdeviii.app.n8n.cloud/webhook-test/lexscope-analyze";
-
-type Phase = "form" | "processing" | "success" | "error";
-type WebhookStatus = "connected" | "sending" | "processing" | "completed" | "failed";
+type Phase = "form" | "success";
 
 const STEPS = ["Upload", "Details", "Submit"];
 
@@ -26,7 +22,6 @@ const Dashboard = () => {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [phase, setPhase] = useState<Phase>("form");
-  const [webhookStatus, setWebhookStatus] = useState<WebhookStatus>("connected");
 
   const currentStep = !file ? 0 : !jurisdiction || !email ? 1 : 2;
 
@@ -55,54 +50,12 @@ const Dashboard = () => {
     setEmail("");
     setEmailError("");
     setPhase("form");
-    setWebhookStatus("connected");
   }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!isFormValid || !file) return;
-
-    setPhase("processing");
-    setWebhookStatus("sending");
-
-    try {
-      const reader = new FileReader();
-      const base64Promise = new Promise<string>((resolve) => {
-        reader.onload = () => {
-          const result = reader.result as string;
-          resolve(result.split(",")[1]);
-        };
-        reader.readAsDataURL(file);
-      });
-
-      const pdfBase64 = await base64Promise;
-      const jurisdictionValue =
-        jurisdiction === "custom" ? customJurisdiction : jurisdiction;
-
-      setWebhookStatus("processing");
-
-      const response = await fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pdf_file: pdfBase64,
-          email,
-          jurisdiction: jurisdictionValue,
-          file_name: file.name,
-          submission_timestamp: new Date().toISOString(),
-          project_name: "LEGALMIND",
-        }),
-      });
-
-      if (!response.ok) throw new Error("Webhook request failed");
-
-      setWebhookStatus("completed");
-      setPhase("success");
-      toast.success("Document submitted successfully!");
-    } catch {
-      setWebhookStatus("failed");
-      setPhase("error");
-      toast.error("Submission failed. Please try again.");
-    }
+    setPhase("success");
+    toast.success("Document submitted successfully!");
   };
 
   const jurisdictionLabel =
@@ -114,7 +67,6 @@ const Dashboard = () => {
 
       <main className="flex-1 px-4 py-10 md:py-16">
         <div className="container mx-auto max-w-2xl">
-          {/* Header */}
           <div className="mb-8 text-center">
             <h1 className="mb-2 text-3xl font-bold tracking-tight text-foreground">
               Document Analyzer
@@ -144,7 +96,6 @@ const Dashboard = () => {
                   onCustomChange={setCustomJurisdiction}
                 />
 
-                {/* Email */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">
                     Receive Analysis Report via Email
@@ -164,7 +115,6 @@ const Dashboard = () => {
                   )}
                 </div>
 
-                {/* Actions */}
                 <div className="flex gap-3 pt-2">
                   <Button
                     onClick={handleSubmit}
@@ -184,18 +134,6 @@ const Dashboard = () => {
           )}
 
           <AnimatePresence mode="wait">
-            {phase === "processing" && (
-              <motion.div
-                key="processing"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="rounded-2xl border border-border bg-card p-6 shadow-elevated md:p-8"
-              >
-                <ProcessingScreen webhookStatus={webhookStatus} />
-              </motion.div>
-            )}
-
             {phase === "success" && (
               <motion.div
                 key="success"
@@ -210,35 +148,6 @@ const Dashboard = () => {
                   email={email}
                   onReset={handleReset}
                 />
-              </motion.div>
-            )}
-
-            {phase === "error" && (
-              <motion.div
-                key="error"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="rounded-2xl border border-border bg-card p-6 text-center shadow-elevated md:p-8"
-              >
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-                  <AlertCircle className="h-8 w-8 text-destructive" />
-                </div>
-                <h2 className="mb-2 text-xl font-bold text-foreground">
-                  Submission Failed
-                </h2>
-                <p className="mb-6 text-muted-foreground">
-                  We couldn't process your document. Please check your connection and try again.
-                </p>
-                <div className="flex justify-center gap-3">
-                  <Button onClick={handleSubmit} className="gap-2">
-                    <RotateCcw className="h-4 w-4" />
-                    Retry
-                  </Button>
-                  <Button variant="outline" onClick={handleReset}>
-                    Start Over
-                  </Button>
-                </div>
               </motion.div>
             )}
           </AnimatePresence>
