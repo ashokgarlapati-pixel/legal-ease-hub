@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
-const WEBHOOK_URL = "https://vagdeviii.app.n8n.cloud/webhook-test/lexscope-analyze";
+const WEBHOOK_URL = "https://road-77.app.n8n.cloud/webhook-test/48ef630b-e5d9-486c-8020-0b416bc354d5";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
