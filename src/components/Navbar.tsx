@@ -1,11 +1,20 @@
-import { Link, useLocation } from "react-router-dom";
-import { Scale, Menu, X } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Scale, Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast.success("Signed out successfully");
+    navigate("/auth");
+  };
 
   const links = [
     { label: "Dashboard", to: "/dashboard" },
@@ -43,6 +52,10 @@ const Navbar = () => {
               Analyze Document
             </Button>
           </Link>
+          <Button size="sm" variant="ghost" onClick={handleSignOut} className="ml-1 gap-1.5 text-muted-foreground">
+            <LogOut className="h-4 w-4" />
+            Sign Out
+          </Button>
         </div>
 
         {/* Mobile toggle */}
@@ -72,6 +85,10 @@ const Navbar = () => {
               Analyze Document
             </Button>
           </Link>
+          <Button size="sm" variant="ghost" onClick={() => { setMobileOpen(false); handleSignOut(); }} className="mt-1 w-full gap-1.5 text-muted-foreground">
+            <LogOut className="h-4 w-4" />
+            Sign Out
+          </Button>
         </div>
       )}
     </nav>
