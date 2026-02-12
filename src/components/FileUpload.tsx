@@ -8,6 +8,11 @@ interface FileUploadProps {
 
 const MAX_SIZE = 20 * 1024 * 1024; // 20MB
 
+const SAMPLE_DOCS = [
+  { name: "Client Policy (India Compliant)", path: "/samples/LEGALMIND_Client_Policy_India_Compliant.pdf" },
+  { name: "HR Policies (3 Mistakes Demo)", path: "/samples/LEGALMIND_HR_Policies_3_Mistakes_Demo.pdf" },
+];
+
 const FileUpload = ({ file, onFileSelect }: FileUploadProps) => {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -95,6 +100,34 @@ const FileUpload = ({ file, onFileSelect }: FileUploadProps) => {
         <div className="flex items-center gap-2 text-sm text-destructive">
           <AlertCircle className="h-4 w-4" />
           {error}
+        </div>
+      )}
+
+      {!file && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">Or try a sample document:</p>
+          <div className="flex flex-wrap gap-2">
+            {SAMPLE_DOCS.map((doc) => (
+              <button
+                key={doc.path}
+                type="button"
+                onClick={async () => {
+                  try {
+                    const res = await fetch(doc.path);
+                    const blob = await res.blob();
+                    const sampleFile = new File([blob], doc.path.split("/").pop()!, { type: "application/pdf" });
+                    onFileSelect(sampleFile);
+                  } catch {
+                    setError("Failed to load sample document.");
+                  }
+                }}
+                className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-accent/10 hover:border-accent"
+              >
+                <FileText className="mr-1.5 inline-block h-3.5 w-3.5 text-accent" />
+                {doc.name}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

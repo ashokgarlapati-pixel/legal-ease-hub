@@ -20,7 +20,7 @@ const STEPS = ["Upload", "Details", "Submit"];
 
 const Dashboard = () => {
   const [file, setFile] = useState<File | null>(null);
-  const [jurisdiction, setJurisdiction] = useState("");
+  const [jurisdiction, setJurisdiction] = useState("india");
   const [customJurisdiction, setCustomJurisdiction] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
