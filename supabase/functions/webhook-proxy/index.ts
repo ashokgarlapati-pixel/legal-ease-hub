@@ -14,13 +14,20 @@ serve(async (req) => {
   }
 
   try {
-    const formData = await req.formData();
+    // Read raw body and content-type to forward exactly as-is
+    const contentType = req.headers.get("content-type") || "";
+    const rawBody = await req.arrayBuffer();
 
     console.log("Forwarding request to webhook:", WEBHOOK_URL);
+    console.log("Content-Type:", contentType);
+    console.log("Body size:", rawBody.byteLength, "bytes");
 
     const response = await fetch(WEBHOOK_URL, {
       method: "POST",
-      body: formData,
+      headers: {
+        "Content-Type": contentType,
+      },
+      body: rawBody,
     });
 
     const responseText = await response.text();
@@ -34,7 +41,6 @@ serve(async (req) => {
       );
     }
 
-    // Always return valid JSON even if webhook returns empty body
     const jsonBody = responseText && responseText.trim()
       ? responseText
       : JSON.stringify({ success: true });
