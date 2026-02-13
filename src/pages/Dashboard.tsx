@@ -71,11 +71,14 @@ const Dashboard = () => {
 
       setWebhookStatus("processing");
 
-      const response = await supabase.functions.invoke("webhook-proxy", {
+      const { data, error } = await supabase.functions.invoke("webhook-proxy", {
         body: formData,
       });
 
-      if (response.error) throw new Error(response.error.message);
+      if (error) {
+        const errorMsg = typeof error === 'object' && error.message ? error.message : String(error);
+        throw new Error(errorMsg);
+      }
 
       setWebhookStatus("completed");
       setTimeout(() => {
