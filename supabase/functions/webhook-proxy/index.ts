@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
-const WEBHOOK_URL = "https://jxnxrdhxn.app.n8n.cloud/webhook/legalmind";
+const WEBHOOK_URL = "https://jxnxrdhxn.app.n8n.cloud/webhook-test/legalmind";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
