@@ -16,13 +16,15 @@ serve(async (req) => {
   try {
     const formData = await req.formData();
 
-    // Forward the form data to the n8n webhook
+    console.log("Forwarding request to webhook:", WEBHOOK_URL);
+
     const response = await fetch(WEBHOOK_URL, {
       method: "POST",
       body: formData,
     });
 
     const responseText = await response.text();
+    console.log("Webhook response status:", response.status, "body:", responseText);
 
     if (!response.ok) {
       console.error("Webhook error:", response.status, responseText);
@@ -32,7 +34,12 @@ serve(async (req) => {
       );
     }
 
-    return new Response(responseText, {
+    // Always return valid JSON even if webhook returns empty body
+    const jsonBody = responseText && responseText.trim()
+      ? responseText
+      : JSON.stringify({ success: true });
+
+    return new Response(jsonBody, {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
